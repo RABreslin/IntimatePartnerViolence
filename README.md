@@ -1,2 +1,2 @@
 # IntimatePartnerViolence
-NIBRs data regarding intimate partner violence disaggregated by race, ethnicity, and gender. 
+NIBRs, LEMAS, LEOKA, & CENSUS data regarding police response to intimate partner violence. Disaggregated by race, ethnicity, and gender.
