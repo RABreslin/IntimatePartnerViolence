@@ -1593,3 +1593,1250 @@ quietly by YEAR ORI:  gen dup = cond(_N==1,0,_n)
 tabulate dup 
 drop if dup>1
 
+
+**Entire sections of code are missing. ARGH! All of my work to create the reporting rate variables and all of the work for estout usage. So frustrating. 
+*Thankfully, I have the output from the models I already ran. 
+
+**Creating the reporting rate by race & type of report: 
+
+gen WDV_RR = WomVic_DV_T/POP 
+gen lnWDV_RR = ln(WDV_RR)
+
+gen WDV_V_RR = WomVic_DV_V_T/POP
+gen lnWDV_V_RR = ln(WDV_V_RR)
+
+gen WDV_SI_RR = WomVic_DV_T/POP 
+gen lnWDV_SI_RR = ln(WDV_SI_RR)
+
+gen WDV_SA_RR = WomVic_DV_T/POP 
+gen lnWDV_SA_RR = ln(WDV_SA_RR)
+
+gen WDV_SC_RR = WomVic_DV_T/POP 
+gen lnWDV_SC_RR = ln(WDV_SC_RR)
+
+gen WNHDV_RR = WNH_WomVic_DV_T/whitefem 
+gen lnWNHDV_RR = ln(WNHDV_RR)
+
+gen WNHDV_V_RR = WNH_WomVic_DV_V_T/whitefem
+gen lnWNHDV_V_RR = ln(WNHDV_V_RR)
+
+gen WNHDV_SI_RR = WNH_WomVic_DV_T/whitefem 
+gen lnWNHDV_SI_RR = ln(WNHDV_SI_RR)
+
+gen WNHDV_SA_RR = WNH_WomVic_DV_T/whitefem 
+gen lnWNHDV_SA_RR = ln(WNHDV_SA_RR)
+
+gen WNHDV_SC_RR = WNH_WomVic_DV_T/whitefem 
+gen lnWNHDV_SC_RR = ln(WNHDV_SC_RR)
+
+gen BNHDV_RR = BNH_WomVic_DV_T/blackfem
+gen lnBNHDV_RR = ln(BNHDV_RR)
+
+gen BNHDV_V_RR = BNH_WomVic_DV_V_T/blackfem
+gen lnBNHDV_V_RR = ln(BNHDV_V_RR)
+
+gen BNHDV_SI_RR = BNH_WomVic_DV_T/blackfem 
+gen lnBNHDV_SI_RR = ln(BNHDV_SI_RR)
+
+gen BNHDV_SA_RR = BNH_WomVic_DV_T/blackfem 
+gen lnBNHDV_SA_RR = ln(BNHDV_SA_RR)
+
+gen BNHDV_SC_RR = BNH_WomVic_DV_T/blackfem 
+gen lnBNHDV_SC_RR = ln(BNHDV_SC_RR)
+
+gen HWDV_RR = H_WomVic_DV_T/hispfem 
+gen lnHWDV_RR = ln(HWDV_RR)
+
+gen HWDV_V_RR = H_WomVic_DV_V_T/hispfem
+gen lnHWDV_V_RR = ln(HWDV_V_RR)
+
+gen HWDV_SI_RR = H_WomVic_DV_T/hispfem 
+gen lnHWDV_SI_RR = ln(HWDV_SI_RR)
+
+gen HWDV_SA_RR = H_WomVic_DV_T/hispfem 
+gen lnHWDV_SA_RR = ln(HWDV_SA_RR)
+
+gen HWDV_SC_RR = H_WomVic_DV_T/hispfem 
+gen lnHWDV_SC_RR = ln(HWDV_SC_RR)
+
+**Creating the summary statistics
+
+estpost sum PctFem PolicePC MandatoryArrest ViolentCrimeRate medpov medinc PropBlkPop PropHispPop 
+esttab using summarystats.rtf, cell((mean sd(par) min max)) nonumber nomtitle
+
+**Creating correlation tables for reporting rates
+estpost correlate WDV_RR BNHDV_RR HWDV_RR WNHDV_RR PctFem PolicePC MandatoryArrest ViolentCrimeRate medpov medinc PropBlkPop PropHispPop, matrix listwise
+esttab using reportingratecorrelations.rtf, unstack not noobs compress
+
+**Creating correlation tables for arrest rates
+estpost correlate WDVArrest_DV_R BNHDVArrest_DV_R HWDVArrest_DV_R WNHDVArrest_DV_R PctFem PolicePC MandatoryArrest ViolentCrimeRate medpov medinc PropBlkPop PropHispPop, matrix listwise
+esttab using arrestratecorrelations.rtf, unstack not noobs compress
+
+**Creating the results tables- starting with report rates
+**IPV OVERALL
+
+*Women as a group
+qui areg lnWDV_RR l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWDV_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWDV_RR l.PctFem l.lnPolicePC l.MandatoryArrest l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWDV_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WDVreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*White non-hisp women
+qui areg lnWNHDV_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWNHDV_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWNHDV_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WNHDV_reportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*Black non-hisp women
+qui areg lnBNHDV_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnBNHDV_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnBNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnBNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnBNHDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnBNHDV_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using BNHDV_reportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*Hispanic women 
+qui areg lnHWDV_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnHWDV_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnHWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnHWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnHWDV_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnHWDV_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using HWDV_reportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+
+**FOR IPV--VIOLENT CRIMES
+*Women in general 
+qui areg lnWDV_V_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWDV_V_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWDV_V_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using rWDV_Violentreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*White non-Hispanic women
+qui areg lnWNHDV_V_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWNHDV_V_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWNHDV_V_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WNHDV_Violentreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+**Black non-Hispanic women
+qui areg lnBNHDV_V_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnBNHDV_V_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnBNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnBNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnBNHDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnBNHDV_V_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using BNHDV_Violentreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*Hispanic women
+qui areg lnHWDV_V_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnHWDV_V_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnHWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnHWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnHWDV_V_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnHWDV_V_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using HWDV_Violentreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+**FOR IPV--SEXUAL ASSAULT REPORTING
+
+*Women Overall
+qui areg lnWDV_SA_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWDV_SA_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWDV_SA_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WDV_SAreportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*White non-hispanic women
+qui areg lnWNHDV_SA_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWNHDV_SA_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWNHDV_SA_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WNHDV_SAreportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+*Black non-hispanic women
+qui areg lnBNHDV_SA_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnBNHDV_SA_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnBNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnBNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnBNHDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnBNHDV_SA_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using BNHDV_SAreportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*Hispanic women
+qui areg lnHWDV_SA_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnHWDV_SA_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnHWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnHWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnHWDV_SA_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnHWDV_SA_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using HWDV_SAreportingresults.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+
+**FOR IPV--SERIOUS CRIME REPORTING
+*Women in general 
+qui areg lnWDV_SC_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWDV_SC_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWDV_SC_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WDV_SCreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*White non-Hispanic women 
+qui areg lnWNHDV_SC_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWNHDV_SC_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWNHDV_SC_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WNHDV_SCreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*Black non-Hispanic women 
+qui areg lnBNHDV_SC_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnBNHDV_SC_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnBNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnBNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnBNHDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnBNHDV_SC_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using BNHDV_SCreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*Hispanic women 
+qui areg lnHWDV_SC_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnHWDV_SC_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnHWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnHWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnHWDV_SC_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnHWDV_SC_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using HWDV_SCreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+**FOR IPV--SIMPLE ASSAULT/INTIMIDATION REPORTING
+
+*Women in general 
+qui areg lnWDV_SI_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWDV_SI_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWDV_SI_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WDV_SIreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*White non-Hispanic women 
+qui areg lnWNHDV_SI_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnWNHDV_SI_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnWNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnWNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnWNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnWNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnWNHDV_SI_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using WNHDV_SIreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*Black non-Hispanic women 
+qui areg lnBNHDV_SI_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnBNHDV_SI_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnBNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnBNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnBNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnBNHDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnBNHDV_SI_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using BNHDV_SIreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+*Hispanic women 
+qui areg lnHWDV_SI_RR  l.PctFem, absorb(ORIb) robust
+est sto m1
+
+qui areg lnHWDV_SI_RR l.PctFem l.lnPolicePC, absorb(ORIb) robust
+est sto m2
+
+qui areg lnHWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov, absorb(ORIb) robust
+est sto m3
+
+qui areg lnHWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc, absorb(ORIb) robust
+est sto m4
+
+qui areg lnHWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop, absorb(ORIb) robust
+est sto m5
+
+qui areg lnHWDV_SI_RR l.PctFem l.lnPolicePC l.ViolentCrimeRate l.medpov l.lnmedinc l.PropMinPop i.yeara, absorb(ORIb) robust
+est sto m6
+
+qui areg lnHWDV_SI_RR l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop l.ViolentCrimeRate i.yeara, absorb(ORIb) robust
+est sto m7
+
+esttab m1 m2 m3 m4 m5 m6 m7 using HWDV_SIreportingresult.rtf, onecell keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop L.ViolentCrimeRate) se scalar(F areg_footnote Robust) ar2 
+
+
+
+**Creating the results tables- arrest rates
+**IPV OVERALL
+*women in general 
+qui xtgee WDVArrest_DV_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WDVArrest_DV_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WDVArrest_DV_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WDVArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*White non-Hispanic women 
+qui xtgee WNHDVArrest_DV_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_DV_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WNHDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WNHDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WNHDVArrest_DV_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WNHDVArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*Black non-Hispanic women 
+qui xtgee BNHDVArrest_DV_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee BNHDVArrest_DV_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee BNHDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee BNHDVArrest_DV_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using BNHDVArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+*Hispanic women 
+qui xtgee HWDVArrest_DV_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee HWDVArrest_DV_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee HWDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_DV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee HWDVArrest_DV_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using HWDVArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+**VIOLENT IPV 
+*women in general 
+qui xtgee WDVArrest_V_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WDVArrest_V_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WDVArrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WDVArrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WDVArrest_V_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WDVViolentArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*White non-Hispanic women 
+qui xtgee WNHDVArrest_V_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_V_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WNHDVArrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WNHDVArrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WNHDVArrest_V_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WNHDVViolentArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*Black non-Hispanic women 
+qui xtgee BNHDVARrest_V_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee BNHDVARrest_V_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVARrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee BNHDVARrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee BNHDVARrest_V_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using BNHDVViolentArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+*Hispanic women 
+qui xtgee HWDVArrest_V_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee HWDVArrest_V_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee HWDVArrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee HWDVArrest_V_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using HWDVViolentArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+**SEXUAL ASSAULT IPVS 
+*women in general 
+qui xtgee WDVArrest_DVSA_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WDVArrest_DVSA_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WDVArrest_DVSA_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WDVSexualAssaultArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*White non-Hispanic women 
+qui xtgee WNHDVArrest_DVSA_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_DVSA_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WNHDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WNHDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WNHDVArrest_DVSA_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WNHDVSexualAssaultArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*Black non-Hispanic women 
+qui xtgee BNHDVArrest_DVSA_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee BNHDVArrest_DVSA_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee BNHDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee BNHDVArrest_DVSA_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using BNHDVSexualAssaultArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+*Hispanic women 
+qui xtgee HWDVArrest_DVSA_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee HWDVArrest_DVSA_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee HWDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_DVSA_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee HWDVArrest_DVSA_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using HWDVSexualAssaultArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+**SERIOUS CRIMES, IPVS 
+*women in general 
+qui xtgee WDVArrest_DVSC_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WDVArrest_DVSC_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WDVArrest_DVSC_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WDVSeriousCrimeArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*White non-Hispanic women 
+qui xtgee WNHDVArrest_DVSC_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_DVSC_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WNHDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WNHDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WNHDVArrest_DVSC_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WNHDVSeriousCrimeArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*Black non-Hispanic women 
+qui xtgee BNHDVArrest_DVSC_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee BNHDVArrest_DVSC_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee BNHDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee BNHDVArrest_DVSC_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using BNHDVSeriousCrime.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+*Hispanic women 
+qui xtgee HWDVArrest_DVSC_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee HWDVArrest_DVSC_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee HWDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_DVSC_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee HWDVArrest_DVSC_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using HWDVSeriousCrime.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+**SIMPLE ASSAULT OR INTIMIDATION, IPVS 
+*women in general 
+qui xtgee WDVArrest_DVSI_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WDVArrest_DVSI_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WDVArrest_DVSI_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WDVSimpleArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*White non-Hispanic women 
+qui xtgee WNHDVArrest_DVSI_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_DVSI_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee WNHDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee WNHDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee WNHDVArrest_DVSI_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using WNHDVSimple.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+*Black non-Hispanic women 
+qui xtgee BNHDVArrest_DVSI_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee BNHDVArrest_DVSI_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee BNHDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee BNHDVArrest_DVSI_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using BNHDVSimple.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+*Hispanic women 
+qui xtgee HWDVArrest_DVSI_R l.PctFem, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee HWDVArrest_DVSI_R l.PctFem l.lnPolicePC, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee HWDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_DVSI_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+qui xtgee HWDVArrest_DVSI_R l.PctFem l.PctFemSq l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m5
+
+esttab m1 m2 m3 m4 m5 using HWDVSimple.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)  
+
+
+**ON VIEW ARRESTS
+
+qui xtgee WDVArrest_OV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_OV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_OV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_OV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+esttab m1 m2 m3 m4 using OnViewArr.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust) mtitles("WDVArrest" "WNHDVArrest" "BNHDVArrest" "HWDVArrest")
+
+ 
+
+**TAKEN INTO CUSTODY
+
+qui xtgee WDVArrest_Cust_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_Cust_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_Cust_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_Cust_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+
+esttab m1 m2 m3 m4 using TakenIntoCustArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust) mtitles("WDVArrest" "WNHDVArrest" "BNHDVArrest" "HWDVArrest") 
+
+**ON VIEW ARRESTS--Violent IPV
+
+qui xtgee WDVArrest_OVV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_OVV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_OVV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_OVV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+
+esttab m1 m2 m3 m4 using ViolOnViewArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust) mtitles("WDVArrest" "WNHDVArrest" "BNHDVArrest" "HWDVArrest")  
+
+
+**TAKEN INTO CUSTODY--VIOLENT ARREST
+
+qui xtgee WDVArrest_CustDV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m1
+
+qui xtgee WNHDVArrest_CustV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m2
+
+qui xtgee BNHDVArrest_CustV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m3
+
+qui xtgee HWDVArrest_CustV_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+qui margins, dydx(_all) post
+est sto m4
+
+
+esttab m1 m2 m3 m4 using CustViolArrests.rtf, keep (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) order (L.PctFem L.PctFemSq L.lnPolicePC L.medpov L.lnmedinc L.PropMinPop) se scalar(Robust)mtitles("WDVArrest" "WNHDVArrest" "BNHDVArrest" "HWDVArrest")   
+
+
+**Substituting critical mass variable for squared pctfem term
+xtgee BNHDVARrest_V_R l.PctFem l.CritMass l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+margins, dydx(_all) post
+
+
+**Adding an interaction term for PctFem and Mandatory Arrest (in order to create some variation in terms of MandArr)
+xtgee BNHDVArrest_OVV_R l.PctFem l.CritMass l.MandatoryArrest l.PctFem_MandArr l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, family(binomial 1) link(logit) corr(exchangeable) vce(robust)
+
+
+
+**Fixed effects sensitivity test
+xtlogit BNHDVARrest_V_R l.PctFem l.CritMass l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop, pa vce(robust)
+
+
+**For standardized beta coefficients
+esttab m1 m2 m3 m4 m5, beta not
+
+**Something is wrong with the violent crime rate data. Lots of zeros that don't make sense since they should, at a minimum, be registring the IPVs as violent crimes. Check on this. 
+
+**An important alternative to GEE for the arrest rates, is xtlogit...I had to add year fixed effects manually. Also, I can't account for mandatory arrest with 
+*fixed effects, but then, mandatory arrest policies do not appear to vary over the time period for the stations that do or not have them. I think the 
+*fixed effects are more important because 1) even though there are not state level policies, jurisdictions may have standing policies; 2) even where there are
+*state level policies, they're written in a fairly ambiguous way. 
+
+xtlogit BNHDVARrest_V_R l.PctFem l.lnPolicePC l.medpov l.lnmedinc l.PropMinPop years1 years2 years3 years4 years5 years6 years7 years8 years9 years10 years11 years12 years13 years14, i(ORIb) pa corr(exchangeable) vce(robust) 
+
+*The correct margins command. The way to interpret the coefficient is that a 1 percentage point increase in female officers (increases/decreases) the (Black, Latinx, etc.
+*arrest rates by the exact coefficient (no need to transform it in any way). 
+
+margins, dydx(_all)
+
+*This gives me the marginal effect of the statistically significant coefficient at various levels. 
+margins, at(l.PctFem=(11 13)) atmeans vsquish
+
+**For assistance with interpretations: "You're estimating an expected value. So if your dependent variable is the proportion of people receiving asylum (I'm guessing here), then when x2 goes from zero to one you estimate
+**that the percent of people getting asylum goes falls by 9.6 percentage points. You're estimating the expected value of y at x2 = 1 and x2 = 0 and taking the difference.
+
+**Also check against a pooled regression for differences between glm and gee
+glm y x1 i.x2 i.x3, family(binomial 1) link(logit) vce(cluster id)
